@@ -19,9 +19,10 @@ function add_config_value() {
 [ -z "${SERVER_HOSTNAME}" ] && echo "SERVER_HOSTNAME is not set" && exit 1
 
 SMTP_PORT="${SMTP_PORT-587}"
+SMTP_USE_TLS="${SMTP_USE_TLS-no}"
 
 #Get the domain from the server host name
-DOMAIN=`echo ${SERVER_HOSTNAME} | awk 'BEGIN{FS=OFS="."}{print $(NF-1),$NF}'`
+[ -z "${DOMAIN}" ] && DOMAIN=`echo ${SERVER_HOSTNAME} | awk 'BEGIN{FS=OFS="."}{print $(NF-1),$NF}'`
 
 # Set needed config options
 add_config_value "myhostname" ${SERVER_HOSTNAME}
@@ -29,7 +30,7 @@ add_config_value "mydomain" ${DOMAIN}
 add_config_value "mydestination" '$myhostname'
 add_config_value "myorigin" '$mydomain'
 add_config_value "relayhost" "[${SMTP_SERVER}]:${SMTP_PORT}"
-add_config_value "smtp_use_tls" "yes"
+add_config_value "smtp_use_tls" ${SMTP_USE_TLS}
 add_config_value "smtp_sasl_auth_enable" "yes"
 add_config_value "smtp_sasl_password_maps" "hash:/etc/postfix/sasl_passwd"
 add_config_value "smtp_sasl_security_options" "noanonymous"
@@ -70,4 +71,6 @@ add_config_value "mynetworks" "${nets}"
 # starting services
 rm -f /var/spool/postfix/pid/master.pid
 
-exec supervisord -c /etc/supervisord.conf
+# exec supervisord -c /etc/supervisord.conf
+exec /usr/bin/supervisord -n -c /etc/supervisord.conf
+
